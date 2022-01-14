@@ -159,7 +159,7 @@ func (ps *FiberPrometheus) Middleware(ctx *fiber.Ctx) error {
 	path := ctx.Route().Path
 
 	//regex to reduce cardinality of paths on prometheus
-	m1 := regexp.MustCompile(`[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}/i`)
+	m1 := regexp.MustCompile(`[[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}`)
 	filteredpath := m1.ReplaceAllString(ctx.Route().Path, "UUID")
 
 	if path == ps.defaultURL {
