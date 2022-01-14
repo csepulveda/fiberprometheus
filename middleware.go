@@ -162,6 +162,7 @@ func (ps *FiberPrometheus) Middleware(ctx *fiber.Ctx) error {
 	//regex to reduce cardinality of paths on prometheus
 	m1 := regexp.MustCompile("test")
 	filteredpath := m1.ReplaceAllString(ctx.Route().Path, "UUID")
+	fmt.Println("path: ", path)
 	fmt.Println("path: ", ctx.Route().Path)
 	fmt.Println("filteredpath: ", filteredpath)
 
