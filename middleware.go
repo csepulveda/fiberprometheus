@@ -169,20 +169,20 @@ func (ps *FiberPrometheus) Middleware(ctx *fiber.Ctx) error {
 		return ctx.Next()
 	}
 
-	ps.requestInFlight.WithLabelValues(method, filteredpath).Inc()
+	ps.requestInFlight.WithLabelValues(method, path).Inc()
 	defer func() {
-		ps.requestInFlight.WithLabelValues(method, filteredpath).Dec()
+		ps.requestInFlight.WithLabelValues(method, path).Dec()
 	}()
 	if err := ctx.Next(); err != nil {
 		return err
 	}
 
 	statusCode := strconv.Itoa(ctx.Response().StatusCode())
-	ps.requestsTotal.WithLabelValues(statusCode, method, filteredpath).
+	ps.requestsTotal.WithLabelValues(statusCode, method, path).
 		Inc()
 
 	elapsed := float64(time.Since(start).Nanoseconds()) / 1000000000
-	ps.requestDuration.WithLabelValues(statusCode, method, filteredpath).
+	ps.requestDuration.WithLabelValues(statusCode, method, path).
 		Observe(elapsed)
 
 	return nil
