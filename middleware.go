@@ -22,6 +22,7 @@
 package fiberprometheus
 
 import (
+	"regexp"
 	"strconv"
 	"time"
 
@@ -121,25 +122,29 @@ func (ps *FiberPrometheus) Middleware(ctx *fiber.Ctx) error {
 	method := string(ctx.Context().Method())
 	path := string(ctx.Context().Path())
 
+	//regex to reduce cardinality of paths on prometheus
+	m1 := regexp.MustCompile("[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}")
+	filteredpath := m1.ReplaceAllString(path, "UUID")
+
 	if path == ps.defaultURL {
 		return ctx.Next()
 
 	}
 
-	ps.requestInFlight.WithLabelValues(method, path).Inc()
+	ps.requestInFlight.WithLabelValues(method, filteredpath).Inc()
 	defer func() {
-		ps.requestInFlight.WithLabelValues(method, path).Dec()
+		ps.requestInFlight.WithLabelValues(method, filteredpath).Dec()
 	}()
 	if err := ctx.Next(); err != nil {
 		return err
 	}
 
 	statusCode := strconv.Itoa(ctx.Response().StatusCode())
-	ps.requestsTotal.WithLabelValues(statusCode, method, path).
+	ps.requestsTotal.WithLabelValues(statusCode, method, filteredpath).
 		Inc()
 
 	elapsed := float64(time.Since(start).Nanoseconds()) / 1000000000
-	ps.requestDuration.WithLabelValues(statusCode, method, path).
+	ps.requestDuration.WithLabelValues(statusCode, method, filteredpath).
 		Observe(elapsed)
 
 	return nil
